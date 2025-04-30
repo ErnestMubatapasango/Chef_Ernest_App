@@ -1,6 +1,6 @@
+"use client"
 import Image from 'next/image'
 import React from 'react'
-//import chef from './chef-claude-icon.png'
 
 const Header = () => {
   return (

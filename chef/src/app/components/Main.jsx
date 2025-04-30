@@ -1,29 +1,44 @@
 "use client"
 import React from 'react'
+import ClaudeRecipe from './ClaudeRecipe'
+import { getRecipeFromMistral } from './ai'
+
 
 const Main = () => {
 
     const [ingredients, setIngredients] = React.useState([])
 
+    let newIngredient = ""
+
     function addIngredient(formData){
-        const newIngredient = formData.get("ingredient")
+        newIngredient = formData.get("ingredient")
         setIngredients(prevIngredients => {
-            return [...prevIngredients, newIngredient]
-        })
+            if (prevIngredients.includes(newIngredient)) {
+                return prevIngredients; // No changes if already exists
+            }
+            return [...prevIngredients, newIngredient]; // Add new one
+        });
     }
 
-    const ingredientListItems = ingredients.map(ingredient => {
+    const ingredientListItems = ingredients.map((ingredient, index ) => {
         return (
             <ul className="list-disc">
-                <li key={ingredient} className="text-slate-500">{ingredient}</li>
+                <li key={index} className="text-slate-500">{ingredient}</li>
             </ul>
         )
     })
 
+    const [recipe, setRecipe] = React.useState("")
+
+    async function getRecipe(){
+        const response = await getRecipeFromMistral(ingredients)
+        setRecipe(response)
+    }
+
   return (
     <div className=" h-full w-full relative">
         <form action={addIngredient} className="flex items-center justify-center gap-5 w-full">
-            <input type="text" name="ingredient" placeholder="e.g mushroom" className="w-80 rounded-lg text-black border-1 p-2 border-gray-200"/>
+            <input type="text" name="ingredient" placeholder="e.g mushroom"  className="w-80 rounded-lg text-black border-1 p-2 border-gray-200"/>
             <button className="hover:shadow-xl ease-in-out duration-400 cursor-pointer bg-black text-white py-2 px-4 rounded-lg">+ Add Ingredient</button>
         </form>
         { 
@@ -35,16 +50,16 @@ const Main = () => {
             </div>
         }
         {
-            ingredients.length > 3 &&
+            ingredients.length >= 3 &&
             <div className="bg-gray-100 mx-10 rounded-2xl p-5 mt-24 ">
                 <h3 className="text-black">Ready for a recipe?</h3>
                 <div className="flex justify-between items-center">
                     <p className="text-slate-500">Generate a recipe from your list of ingredients</p>
-                    <button className="hover:shadow-xl ease-in-out duration-400 cursor-pointer bg-orange-300 text-white px-3 py-2 rounded-lg shadow">Get a recipe</button>
+                    <button onClick={getRecipe} className="hover:shadow-xl ease-in-out duration-400 cursor-pointer bg-orange-300 text-white px-3 py-2 rounded-lg shadow">Get a recipe</button>
                 </div>
             </div>
         }
-
+        { recipe && <ClaudeRecipe recipe={recipe}/>}
     </div>
   )
 }
